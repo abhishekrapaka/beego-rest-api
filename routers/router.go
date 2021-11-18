@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"./controllers"
+	"beego-rest-api/controllers"
 
 	beego "github.com/beego/beego/v2/server/web"
 )

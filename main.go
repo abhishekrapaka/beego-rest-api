@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "./routers"
+	_ "beego-rest-api/routers"
 
 	beego "github.com/beego/beego/v2/server/web"
 )
