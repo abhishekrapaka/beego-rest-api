@@ -45,6 +45,7 @@ func GetUser(uid string) (u *User, err error) {
 
 func GetAllUsers() map[string]*User {
 	return UserList
+
 }
 
 func UpdateUser(uid string, uu *User) (a *User, err error) {
