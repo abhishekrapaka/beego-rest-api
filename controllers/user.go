@@ -3,6 +3,7 @@ package controllers
 import (
 	"beego-rest-api/models"
 	"encoding/json"
+	"fmt"
 
 	beego "github.com/beego/beego/v2/server/web"
 )
@@ -21,6 +22,8 @@ type UserController struct {
 func (u *UserController) Post() {
 	var user models.User
 	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+
+	fmt.Println(user)
 	uid := models.AddUser(user)
 	u.Data["json"] = map[string]string{"uid": uid}
 	u.ServeJSON()
