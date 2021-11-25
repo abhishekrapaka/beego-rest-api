@@ -6,7 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	//"golang.org/x/crypto/bcrypt"
+
 	"github.com/beego/beego/v2/client/orm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -32,10 +35,22 @@ type User struct {
 	Email    string
 }
 
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func AddUser(u User) string {
 	o := orm.NewOrm()
+	fmt.Println(u)
 	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	UserList[u.Id] = &u
+	//UserList[u.Id] = &u
+	u.Password, _ = HashPassword(u.Password)
 	_, err := o.Insert(&u)
 	if err != nil {
 		return "User not created "
@@ -100,11 +115,47 @@ func UpdateUser(uid string, uu *User) (a *User, err error) {
 		return nil, errors.New("User not exists")
 	} else {
 
-		_, err := o.Raw("update user set username = " + "'" + uu.Username + "'" + ", password =" + "'" + uu.Password + "'" + ", Age =" + "'" + strconv.Itoa(uu.Age) + "'" + ", address = " + "'" + uu.Address + "'" + ", email = " + "'" + uu.Email + "'" + ", gender = " + "'" + uu.Gender + "'" + " where id = " + "'" + uid + "'").Exec()
+		var username, password, gender, email, address string
+		var age int
+
+		if uu.Username != "" {
+			username = uu.Username
+		} else {
+			username = user.Username
+		}
+		if uu.Password != "" {
+			password = uu.Password
+		} else {
+			password = user.Password
+		}
+		if uu.Age != 0 {
+			age = uu.Age
+		} else {
+			age = user.Age
+		}
+		if uu.Address != "" {
+			address = uu.Address
+		} else {
+			address = user.Address
+		}
+		if uu.Gender != "" {
+			gender = uu.Gender
+		} else {
+			gender = user.Gender
+		}
+		if uu.Email != "" {
+			email = uu.Email
+		} else {
+			email = user.Email
+		}
+		_, err := o.Raw("update user set username = " + "'" + username + "'" + ", password =" + "'" + password + "'" + ", Age =" + strconv.Itoa(age) + ", address = " + "'" + address + "'" + ", email = " + "'" + email + "'" + ", gender = " + "'" + gender + "'" + " where id = " + "'" + uid + "'").Exec()
 
 		if err != nil {
 			return nil, errors.New("some problem in db")
 		}
+
+		o.Read((&user))
+
 		return &user, nil
 	}
 
@@ -147,7 +198,7 @@ func Login(username, password string) bool {
 	} else if rsp == orm.ErrMissPK {
 		return false
 	} else {
-		if user.Password == password {
+		if CheckPasswordHash(password, user.Password) {
 			return true
 		}
 	}
